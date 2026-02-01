@@ -30,18 +30,13 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const storedToken = sessionStorage.getItem("token");
-
-    if (storedToken) {
-      dispatch(checkAuth(JSON.parse(storedToken)));
-    } else {
-      // no token → stop loading spinner
-      // avoids infinite skeleton
-      // auth state remains unauthenticated
-    }
+  const token = JSON.parse(sessionStorage.getItem("token"));
+  dispatch(checkAuth(token));
   }, [dispatch]);
 
-  if (isLoading) return <Skeleton className="w-[800px] bg-black h-[600px]" />;
+  if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
+
+  console.log(isLoading, user);
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">
@@ -49,10 +44,12 @@ function App() {
         <Route
           path="/"
           element={
-            <CheckAuth isAuthenticated={isAuthenticated} user={user} />
+            <CheckAuth
+              isAuthenticated={isAuthenticated}
+              user={user}
+            ></CheckAuth>
           }
         />
-
         <Route
           path="/auth"
           element={
@@ -64,7 +61,6 @@ function App() {
           <Route path="login" element={<AuthLogin />} />
           <Route path="register" element={<AuthRegister />} />
         </Route>
-
         <Route
           path="/admin"
           element={
@@ -78,7 +74,6 @@ function App() {
           <Route path="orders" element={<AdminOrders />} />
           <Route path="features" element={<AdminFeatures />} />
         </Route>
-
         <Route
           path="/shop"
           element={
@@ -95,7 +90,6 @@ function App() {
           <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="search" element={<SearchProducts />} />
         </Route>
-
         <Route path="/unauth-page" element={<UnauthPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -8,11 +8,9 @@ const initialState = {
   token: null,
 };
 
-/* =========================
-   REGISTER
-   ========================= */
 export const registerUser = createAsyncThunk(
   "/auth/register",
+
   async (formData) => {
     const response = await axios.post(
       `${import.meta.env.VITE_API_URL}/api/auth/register`,
@@ -21,15 +19,14 @@ export const registerUser = createAsyncThunk(
         withCredentials: true,
       }
     );
+
     return response.data;
   }
 );
 
-/* =========================
-   LOGIN
-   ========================= */
 export const loginUser = createAsyncThunk(
   "/auth/login",
+
   async (formData) => {
     const response = await axios.post(
       `${import.meta.env.VITE_API_URL}/api/auth/login`,
@@ -38,15 +35,14 @@ export const loginUser = createAsyncThunk(
         withCredentials: true,
       }
     );
+
     return response.data;
   }
 );
 
-/* =========================
-   LOGOUT
-   ========================= */
 export const logoutUser = createAsyncThunk(
   "/auth/logout",
+
   async () => {
     const response = await axios.post(
       `${import.meta.env.VITE_API_URL}/api/auth/logout`,
@@ -55,37 +51,49 @@ export const logoutUser = createAsyncThunk(
         withCredentials: true,
       }
     );
+
     return response.data;
   }
 );
 
-/* =========================
-   CHECK AUTH (TOKEN BASED)
-   ========================= */
+// export const checkAuth = createAsyncThunk(
+//   "/auth/checkauth",
+
+//   async () => {
+//     const response = await axios.get(
+//       `${import.meta.env.VITE_API_URL}/api/auth/check-auth`,
+//       {
+//         withCredentials: true,
+//         headers: {
+//           "Cache-Control":
+//             "no-store, no-cache, must-revalidate, proxy-revalidate",
+//         },
+//       }
+//     );
+
+//     return response.data;
+//   }
+// );
+
 export const checkAuth = createAsyncThunk(
   "/auth/checkauth",
-  async (token, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/auth/check-auth`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Cache-Control":
-              "no-store, no-cache, must-revalidate, proxy-revalidate",
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data);
-    }
+
+  async (token) => {
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/auth/check-auth`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
+
+    return response.data;
   }
 );
 
-/* =========================
-   SLICE
-   ========================= */
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -95,52 +103,41 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.user = null;
       state.token = null;
-      sessionStorage.removeItem("token");
     },
   },
   extraReducers: (builder) => {
     builder
-      /* REGISTER */
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(registerUser.fulfilled, (state) => {
+      .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
       })
-      .addCase(registerUser.rejected, (state) => {
+      .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
       })
-
-      /* LOGIN */
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
+        console.log(action);
+
         state.isLoading = false;
         state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success;
-        state.token = action.payload.token || null;
-
-        if (action.payload.token) {
-          sessionStorage.setItem(
-            "token",
-            JSON.stringify(action.payload.token)
-          );
-        }
+        state.token = action.payload.token;
+        sessionStorage.setItem("token", JSON.stringify(action.payload.token));
       })
-      .addCase(loginUser.rejected, (state) => {
+      .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
         state.token = null;
-        sessionStorage.removeItem("token");
       })
-
-      /* CHECK AUTH */
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
       })
@@ -149,21 +146,15 @@ const authSlice = createSlice({
         state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success;
       })
-      .addCase(checkAuth.rejected, (state) => {
+      .addCase(checkAuth.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
-        state.token = null;
-        sessionStorage.removeItem("token");
       })
-
-      /* LOGOUT */
-      .addCase(logoutUser.fulfilled, (state) => {
+      .addCase(logoutUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
-        state.token = null;
-        sessionStorage.removeItem("token");
       });
   },
 });
