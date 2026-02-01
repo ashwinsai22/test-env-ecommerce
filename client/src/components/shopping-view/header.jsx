@@ -149,7 +149,7 @@ function ShoppingHeader() {
             alt="Ecommerce Logo"
             className="h-8 w-auto"
           />
-          <span className="font-bold">KR Market On VM Test Env - Branch-A</span>
+          <span className="font-bold">KR Market On VM Test Env - Master</span>
         </Link>
 
         <Sheet>
